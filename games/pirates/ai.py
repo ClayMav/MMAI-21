@@ -4,10 +4,30 @@ from joueur.base_ai import BaseAI
 
 # <<-- Creer-Merge: imports -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
 # you can add additional import(s) here
+from collections import OrderedDict
+
+
+WATER = 'water'
+LAND = 'land'
+SHIP = 'ship'
+CREW = 'crew'
 # <<-- /Creer-Merge: imports -->>
 
 class AI(BaseAI):
     """ The basic AI functions that are the same between games. """
+
+    def register_ship(self, crew_required):
+        port_unit = self.player.port.tile.unit
+        if port_unit and port_unit.ship_health > 0:
+            # if ship on port
+            crew_needed = crew_required - port_unit.crew
+            if crew_needed > 0:
+                self.ship_queue[port_unit] = crew_needed
+                # returns the ship unit if built all crew needed, False if not
+                return self.build()
+        else:
+            # create ship
+            self.player.port.spawn(SHIP)
 
     def get_name(self):
         """ This is the name you send to the server so your AI will control the player named this string.
@@ -24,6 +44,7 @@ class AI(BaseAI):
         """
         # <<-- Creer-Merge: start -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
         # replace with your start logic
+
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
