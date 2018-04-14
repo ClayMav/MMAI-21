@@ -47,7 +47,7 @@ class AI(BaseAI):
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
         elif self.get_merchants():
-            self.capture_ship([self.player.units[0]], [self.nearest_merchant(self.player.units[0])])
+            self.attack_ship([self.player.units[0]], self.get_merchants())
         if self.player.units:
             print("   {}".format(self.player.units[0].crew))
 
@@ -80,8 +80,16 @@ class AI(BaseAI):
     def get_merchants(self):
         return [u for u in self.game.units if u.owner is None]
 
-    def attack_ship(self, unit, targets):
-        pass
+    def attack_ship(self, units, targets):
+        if not self.move([u.tile for u in units], [t.tile for t in targets]):
+            return False
+        
+        for unit in units:
+            for target in targets:
+                if unit.tile.has_neighbor(target.tile):
+                    unit.attack(target.tile, SHIP)
+                    return True
+        return False
 
     def capture_ship(self, units, targets, split=1):
         """
