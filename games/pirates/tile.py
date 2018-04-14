@@ -147,7 +147,7 @@ class Tile(GameObject):
             bool: True if pathable, False otherwise
         """
         # <<-- Creer-Merge: is_pathable_builtin -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
-        
+
         # Don't try to path through units
         if self.unit:
             return False
@@ -158,7 +158,7 @@ class Tile(GameObject):
 
         # Crew that aren't on ships can only be on land or ports owned by their owner
         return self.type == "land" or (self.port and self.port.owner == unit.owner)
-        
+
         # <<-- /Creer-Merge: is_pathable_builtin -->>
 
     def has_neighbor(self, tile):
@@ -169,6 +169,15 @@ class Tile(GameObject):
             bool: True if the tile is a neighbor of this Tile, False otherwise
         """
         return bool(tile and tile in self.get_neighbors())
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    def __lt__(self, other):
+        return self.id < other.id
+
+    def __hash__(self):
+        return int(self.id)
 
     # <<-- Creer-Merge: functions -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
     # if you want to add any client side logic (such as state checking functions) this is where you can add them
