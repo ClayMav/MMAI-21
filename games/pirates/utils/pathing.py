@@ -47,8 +47,7 @@ def find_path(start_tiles, goal_tiles, get_neighbors=get_tile_neighbors,
                 if current not in start_tiles:
                     path.append(current)
 
-            path.reverse()
-            return path
+            return current, path
 
         closed.add(working_tile)
 
