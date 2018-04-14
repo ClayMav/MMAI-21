@@ -7,7 +7,6 @@ from joueur.base_ai import BaseAI
 # <<-- /Creer-Merge: imports -->>
 
 class AI(BaseAI):
-
     def get_name(self):
         # <<-- Creer-Merge: get-name -->> 
         return "btw_i_use_arch"
@@ -16,16 +15,19 @@ class AI(BaseAI):
     def start(self):
         # <<-- Creer-Merge: start -->> 
         # replace with your start logic
+        pass
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
         # <<-- Creer-Merge: game-updated -->> 
         # replace with your game updated logic
+        pass
         # <<-- /Creer-Merge: game-updated -->>
 
     def end(self, won, reason):
         # <<-- Creer-Merge: end -->> 
         # replace with your end logic
+        pass
         # <<-- /Creer-Merge: end -->>
 
     def run_turn(self):
