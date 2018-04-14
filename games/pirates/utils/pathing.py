@@ -46,6 +46,7 @@ def find_path(start_tiles, goal_tiles, get_neighbors=get_tile_neighbors,
                 current = path_from.get(current)
                 if current not in start_tiles:
                     path.append(current)
+            path.reverse()
 
             return current, path
 
@@ -62,3 +63,4 @@ def find_path(start_tiles, goal_tiles, get_neighbors=get_tile_neighbors,
                 f_score[neighbor] = new_g + f_func(working_tile, goal_tiles)
                 path_from[neighbor] = working_tile
                 heapq.heappush(frontier, (f_score[neighbor], neighbor))
+    return None, []
