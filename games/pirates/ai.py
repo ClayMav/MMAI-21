@@ -2,113 +2,42 @@
 
 from joueur.base_ai import BaseAI
 
-# <<-- Creer-Merge: imports -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+# <<-- Creer-Merge: imports -->> 
 # you can add additional import(s) here
 # <<-- /Creer-Merge: imports -->>
 
 class AI(BaseAI):
-    """ The basic AI functions that are the same between games. """
-
     def get_name(self):
-        """ This is the name you send to the server so your AI will control the player named this string.
-
-        Returns
-            str: The name of your Player.
-        """
-        # <<-- Creer-Merge: get-name -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+        # <<-- Creer-Merge: get-name -->> 
         return "btw_i_use_arch"
         # <<-- /Creer-Merge: get-name -->>
 
     def start(self):
-        """ This is called once the game starts and your AI knows its playerID and game. You can initialize your AI here.
-        """
-        # <<-- Creer-Merge: start -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+        # <<-- Creer-Merge: start -->> 
         # replace with your start logic
+        pass
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
-        """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
-        """
-        # <<-- Creer-Merge: game-updated -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+        # <<-- Creer-Merge: game-updated -->> 
         # replace with your game updated logic
+        pass
         # <<-- /Creer-Merge: game-updated -->>
 
     def end(self, won, reason):
-        """ This is called when the game ends, you can clean up your data and dump files here if need be.
-
-        Args:
-            won (bool): True means you won, False means you lost.
-            reason (str): The human readable string explaining why you won or lost.
-        """
-        # <<-- Creer-Merge: end -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+        # <<-- Creer-Merge: end -->> 
         # replace with your end logic
+        pass
         # <<-- /Creer-Merge: end -->>
+
     def run_turn(self):
-        """ This is called every time it is this AI.player's turn.
-
-        Returns:
-            bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
-        """
-        # <<-- Creer-Merge: runTurn -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+        # <<-- Creer-Merge: runTurn -->> 
         # Put your game logic here for runTurn
-        if len(self.player._units) == 0:
-            # Spawn a crew if we have no units
-            self.player.port.spawn("crew")
-        elif self.player._units[0]._ship_health == 0:
-            # Spawn a ship so our crew can sail
-            self.player.port.spawn("ship")
-        elif self.player._units[0]._ship_health < self.game._ship_health / 2.0:
-            # Heal our unit if the ship is almost dead
-            # Note: Crew also have their own health. Maybe try adding a check to see if the crew need healing?
-            unit = self.player._units[0]
-
-            # Find a path to our port so we can heal
-            path = self.find_path(unit.tile, self.player.port.tile, unit)
-            if len(path) > 0:
-                # Move along the path if there is one
-                unit.move(path[0])
-            else:
-                # Try to deposit any gold we have while we're here
-                unit.deposit()
-
-                # Try to rest
-                unit.rest()
-        else:
-            # Try to attack a merchant
-            unit = self.player._units[0]
-
-            # Look for a merchant ship
-            merchant = None
-            for u in self.game.units:
-                if u._target_port is not None:
-                    # Found one
-                    merchant = u
-                    break
-
-            # If we found a merchant, move to it, then attack it
-            if merchant is not None:
-                # Find a path to this merchant
-                path = self.find_path(unit.tile, merchant.tile, unit)
-                if len(path) > self.game._ship_range:
-                    # Move until we're within firing range of the merchant
-                    # Note: Range is *circular* in pirates, so this can be improved on
-                    unit.move(path[0])
-                else:
-                    # Try to attack the merchant's ship
-                    unit.attack(merchant.tile, "ship")
 
         return True
         # <<-- /Creer-Merge: runTurn -->>
 
     def find_path(self, start, goal, unit):
-        """A very basic path finding algorithm (Breadth First Search) that when given a starting Tile, will return a valid path to the goal Tile.
-        Args:
-            start (Tile): the starting Tile
-            goal (Tile): the goal Tile
-            unit (Unit): the Unit that will move
-        Returns:
-            list[Tile]: A list of Tiles representing the path, the the first element being a valid adjacent Tile to the start, and the last element being the goal.
-        """
 
         if start == goal:
             # no need to make a path to here...
@@ -152,6 +81,6 @@ class AI(BaseAI):
         #   in that case, we'll just return an empty path.
         return []
 
-    # <<-- Creer-Merge: functions -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
+    # <<-- Creer-Merge: functions -->> 
     # if you need additional functions for your AI you can add them here
     # <<-- /Creer-Merge: functions -->>
