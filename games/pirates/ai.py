@@ -172,7 +172,7 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        target_tiles = [t.tile for t in targets]
+        target_tiles = [t.tile for t in targets if not t.tile.port]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
         self.move(units, target_neighbors)
