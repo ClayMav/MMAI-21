@@ -49,13 +49,12 @@ class AI(BaseAI):
         # <<-- /Creer-Merge: end -->>
 
     def print_stats(self):
-        print(colored('[+]', 'blue'), "Turn {}".format(self.game.current_turn))
+        print(run(bg("Turn #{}".format(self.game.current_turn))))
         self.player.print()
 
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
-        print(run(bg("Turn #{}".format(self.game.current_turn))))
         self.print_stats()
 
         self.sea_starter()
@@ -94,12 +93,11 @@ class AI(BaseAI):
                 attackers.append(pawn)
             print(info("There are {} attackers".format(len(attackers))))
 
-        for fighter in attackers:
-            if fighter.tile is not None:
-                fighter.log("Yar har!")
-                enemy_units = [u for u in self.player.opponent.units if u.tile
-                               is not None]
-                self.attack_ship([fighter], enemy_units)
+        if len(fighers) > 3:
+            for fighter in attackers:
+                    fighter.log("Yar har!")
+                    enemy_units = [u for u in self.player.opponent.units]
+                    self.attack_ship([fighter], enemy_units)
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
