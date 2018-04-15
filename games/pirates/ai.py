@@ -6,6 +6,7 @@ from joueur.base_ai import BaseAI
 # you can add additional import(s) here
 from huepy import info, bad, good, run, bg
 import heapq
+import random
 
 WATER = 'water'
 LAND = 'land'
@@ -27,6 +28,8 @@ class AI(BaseAI):
         # replace with your start logic
         self.sea_men = []
         self.land_men = []
+        self.skwardly_dogs = []
+        self.merchants = []
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
@@ -43,7 +46,11 @@ class AI(BaseAI):
 
         self.skwardly_dogs = [
             x for x in self.player.opponent.units
-            if x.type == "ship" and x.ship_health != 0
+            if x.tile and x.type == "ship" and x.ship_health != 0
+        ]
+        self.merchants = [
+            x for x in self.game.units
+            if x.tile and not x.owner
         ]
         # <<-- /Creer-Merge: game-updated -->>
 
@@ -72,6 +79,8 @@ class AI(BaseAI):
 
         self.all_aboard()
 
+        self.frantic_fire()
+
         return True
         # <<-- /Creer-Merge: runTurn -->>
 
@@ -92,8 +101,8 @@ class AI(BaseAI):
                 self.player.port.spawn(CREW)
                 self.player.port.spawn(CREW)
                 self.player.port.tile.unit.move(self.sea_men[0].tile)
-        elif self.get_neutrals():
-            self.capture_ship([self.sea_men[0]], self.get_neutrals())
+        elif self.merchants:
+            self.capture_ship([self.sea_men[0]], self.merchants)
             self.sea_men[0].log("Recruiting!")
         else:
             merchant_ports = [
@@ -107,16 +116,22 @@ class AI(BaseAI):
         # Add attackers
         attackers = self.sea_men[1:]
         if attackers:
-            print(info("There are {} attackers".format(len(attackers))))
+            print(info("There be {} attackers".format(len(attackers))))
 
-        for fighter in attackers:
-            fighter.log("Yar har!")
-            enemy_units = [u for u in self.player.opponent.units]
-            self.attack_ship([fighter], enemy_units)
+        if len(attackers) >= 4:
+            for fighter in attackers:
+                fighter.log("Yar har!")
+                enemy_units = [u for u in self.player.opponent.units]
+                self.attack_ship([fighter], enemy_units)
+        else:
+            for fighter in attackers:
+                if not fighter.acted and fighter.moves:
+                    fighter.log("Yar har?")
+                    fighter.move(random.choice(fighter.neighbors_func(fighter.tile)))
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
-            if pawn.ship_health < 10:
+            if pawn.ship_health < 8 or pawn.tile in self.player.port.tile.get_neighbors():
                 self.heal(pawn)
                 pawn.log("Healing time!")
             if pawn.gold >= 600:
@@ -141,12 +156,13 @@ class AI(BaseAI):
     def booty_bodyguard(self):
         pass
 
-    def get_neutrals(self):
-        """
-        Filters `game.units` to find units with no owner (merchants and empty
-        ships).
-        """
-        return [u for u in self.game.units if u.owner is None]
+    def frantic_fire(self):
+        for unit in self.sea_men:
+            if not unit.acted:
+                targets = self.merchants + self.skwardly_dogs
+                in_range = [t for t in targets if unit.tile.in_range(t.tile, 3)]
+                if in_range:
+                    unit.attack(in_range[0].tile, SHIP)
 
     def attack_ship(self, units, targets):
         """
@@ -216,8 +232,9 @@ class AI(BaseAI):
         :rtype: bool
         """
         if self.move_to_port(unit):
+            if unit.ship_health == 20 and unit.crew_health == 4 * unit.crew:
+                return True
             unit.rest()
-            return unit.ship_health == 20 and unit.crew_health == 4 * unit.crew
         return False
 
     def drop_off(self, unit):
