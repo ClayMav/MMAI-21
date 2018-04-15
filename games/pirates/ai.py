@@ -50,16 +50,18 @@ class AI(BaseAI):
 
     def print_stats(self):
         print(run(bg("Turn #{}".format(self.game.current_turn))))
-        self.player.print()
+        self.player.output_stats()
 
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
         self.print_stats()
 
+        self.matey_maintenence()
+
         self.sea_starter()
 
-        self.matey_maintenence()
+        self.booty_bodyguard()
 
         self.pirate_propagate()
 
@@ -78,27 +80,19 @@ class AI(BaseAI):
             self.player.port.spawn(CREW)
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
-        else:
-            for _ in range(self.player.gold//200):
-                self.player.port.spawn(CREW)
-
-        if self.get_neutrals():
+        elif self.get_neutrals():
             self.capture_ship([self.sea_men[0]], self.get_neutrals())
 
     def pirate_propagate(self):
         # Add attackers
-        attackers = []
-        if len(self.sea_men) > 2:
-            for pawn in self.sea_men[1:]:
-                attackers.append(pawn)
+        attackers = self.sea_men[1:]
+        if attackers:
             print(info("There are {} attackers".format(len(attackers))))
 
         for fighter in attackers:
-            if fighter.tile is not None:
-                fighter.log("Yar har!")
-                enemy_units = [u for u in self.player.opponent.units if u.tile
-                               is not None]
-                self.attack_ship([fighter], enemy_units)
+            fighter.log("Yar har!")
+            enemy_units = [u for u in self.player.opponent.units]
+            self.attack_ship([fighter], enemy_units)
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
@@ -120,9 +114,12 @@ class AI(BaseAI):
             least_ship = port_ships[0]
             for x in port_ships[1:]:
                 if x.crew < least_ship.crew:
-                    least_ship = x.crew
+                    least_ship = x
             for crew in port_crew:
                 crew.move(least_ship.tile)
+
+    def booty_bodyguard(self):
+        pass
 
     def get_neutrals(self):
         """
@@ -143,7 +140,7 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        target_tiles = [t.tile for t in targets]
+        target_tiles = [t.tile for t in targets if t.tile is not None]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
         if not self.move(units, target_neighbors):
