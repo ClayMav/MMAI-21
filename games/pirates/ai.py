@@ -5,6 +5,8 @@ from joueur.base_ai import BaseAI
 # <<-- Creer-Merge: imports -->> 
 # you can add additional import(s) here
 from collections import OrderedDict
+from .utils import pathing
+from termcolor import colored
 
 
 WATER = 'water'
@@ -12,6 +14,7 @@ LAND = 'land'
 SHIP = 'ship'
 CREW = 'crew'
 # <<-- /Creer-Merge: imports -->>
+
 
 class AI(BaseAI):
     """ The basic AI functions that are the same between games. """
@@ -37,7 +40,8 @@ class AI(BaseAI):
     def start(self):
         # <<-- Creer-Merge: start -->> 
         # replace with your start logic
-        pass
+        self.ship = None
+        self.target = None
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
@@ -55,54 +59,122 @@ class AI(BaseAI):
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->> 
         # Put your game logic here for runTurn
+        print(colored('[+]', 'red'), "Turn #{}".format(self.game.current_turn))
+
+        if not self.player.units:
+            self.player.port.spawn(CREW)
+            self.player.port.spawn(CREW)
+            self.player.port.spawn(CREW)
+        elif self.player.units[0].ship_health == 0:
+            self.player.port.spawn(SHIP)
+        else:
+            self.player.port.spawn(CREW)
+            self.player.port.spawn(CREW)
+            self.player.port.spawn(CREW)
+
+        if self.get_neutrals():
+            self.capture_ship([self.player.units[0]], self.get_neutrals())
+
+        for u in self.player.units[1:]:
+            self.heal(u)
 
         return True
         # <<-- /Creer-Merge: runTurn -->>
-
-    def find_path(self, start, goal, unit):
-
-        if start == goal:
-            # no need to make a path to here...
-            return []
-
-        # queue of the tiles that will have their neighbors searched for 'goal'
-        fringe = []
-
-        # How we got to each tile that went into the fringe.
-        came_from = {}
-
-        # Enqueue start as the first tile to have its neighbors searched.
-        fringe.append(start)
-
-        # keep exploring neighbors of neighbors... until there are no more.
-        while len(fringe) > 0:
-            # the tile we are currently exploring.
-            inspect = fringe.pop(0)
-
-            # cycle through the tile's neighbors.
-            for neighbor in inspect.get_neighbors():
-                # if we found the goal, we have the path!
-                if neighbor == goal:
-                    # Follow the path backward to the start from the goal and return it.
-                    path = [goal]
-
-                    # Starting at the tile we are currently at, insert them retracing our steps till we get to the starting tile
-                    while inspect != start:
-                        path.insert(0, inspect)
-                        inspect = came_from[inspect.id]
-                    return path
-                # else we did not find the goal, so enqueue this tile's neighbors to be inspected
-
-                # if the tile exists, has not been explored or added to the fringe yet, and it is pathable
-                if neighbor and neighbor.id not in came_from and neighbor.is_pathable(unit):
-                    # add it to the tiles to be explored and add where it came from for path reconstruction.
-                    fringe.append(neighbor)
-                    came_from[neighbor.id] = inspect
-
-        # if you're here, that means that there was not a path to get to where you want to go.
-        #   in that case, we'll just return an empty path.
-        return []
-
+    
     # <<-- Creer-Merge: functions -->> 
     # if you need additional functions for your AI you can add them here
+
+    def get_neutrals(self):
+        """
+        Filters `game.units` to find units with no owner (merchants and empty ships).
+        """
+        return [u for u in self.game.units if u.owner is None]
+
+    def attack_ship(self, units, targets):
+        """
+        Makes progress toward attacking a target ship.
+
+        Once this function returns successfully, one of the targets will be destroyed.
+
+        :param units: The friendly units available to attack.
+        :param targets: The list of units to try to attack.
+
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
+        if not self.move([u.tile for u in units], [t.tile for t in targets]):
+            return False
+        
+        for unit in units:
+            for target in targets:
+                if unit.tile.has_neighbor(target.tile):
+                    unit.attack(target.tile, SHIP)
+                    return True
+        return False
+
+    def capture_ship(self, units, targets, split=1):
+        """
+        Makes progress toward capturing a target ship.
+        
+        Once this function returns successfully, the captured unit will be owned by the player.
+
+        :param units: The friendly units available to capture.
+        :param target: The list of units to try to capture.
+        :param split: How many units should be placed on the captured ship.
+
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
+
+        if not self.move([u.tile for u in units], [t.tile for t in targets]):
+            return False
+
+        for unit in units:
+            for target in targets:
+                if unit.tile.has_neighbor(target.tile):
+                    if target.crew > 0:
+                        unit.attack(target.tile, CREW)
+                        break
+                    else:
+                        b = unit.split(target.tile, split)
+                        return b
+
+        return False
+
+    def heal(self, unit):
+        """
+        Moves a target to the port and heals it back to full health.
+
+        :param unit: The unit to heal.
+        
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
+        if not self.move([unit.tile], [self.player.port.tile]):
+            return False
+
+        if unit.tile.has_neighbor(self.player.port.tile):
+            unit.rest()
+            return unit.ship_health == 20 and unit.crew_health == 4 * unit.crew
+        return False
+
+    def move(self, src, dst):
+        """
+        Finds the minimal-cost path from one of the src to one of dst and moves those units.
+        
+        :param src: A list source tiles containing units.
+        :param dst: A list of destination tiles.
+
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
+        start, path = pathing.find_path(src, dst)
+        if not path:
+            return False
+        unit = start.unit
+        while path and not any(unit.tile.has_neighbor(t) for t in dst):
+                if not unit.move(path.pop(0)):
+                    return False
+        return True
+
     # <<-- /Creer-Merge: functions -->>
