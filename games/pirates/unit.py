@@ -38,6 +38,7 @@ class Unit(GameObject):
         self._stun_turns = 0
         self._target_port = None
         self._tile = None
+        self._job = None
 
     @property
     def acted(self):
@@ -127,6 +128,15 @@ class Unit(GameObject):
         """
         return self._tile
 
+    @property
+    def job(self):
+        """
+        The current job for the unit.
+
+        :rtype: stre
+        """
+
+        return self._job
 
     def attack(self, tile, target):
         """ Attacks either the 'crew' or 'ship' on a Tile in range.

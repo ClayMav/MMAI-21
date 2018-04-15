@@ -181,8 +181,7 @@ class AI(BaseAI):
         target_tiles = [t.tile for t in targets]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
-        if not self.move(units, target_neighbors):
-            return False
+        self.move(units, target_neighbors)
 
         for unit in units:
             for target in targets:
@@ -193,6 +192,8 @@ class AI(BaseAI):
                     else:
                         b = unit.split(target.tile, split)
                         return b
+                elif unit.tile.in_range(target.tile, 3):
+                    unit.attack(target.tile, SHIP)
 
         return False
 
