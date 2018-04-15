@@ -12,6 +12,11 @@ WATER = 'water'
 LAND = 'land'
 SHIP = 'ship'
 CREW = 'crew'
+QUARTER_MASTER = 'quarter_master'  # Recruits
+GUNNER = 'gunner'  # Attacks
+MATE = 'mate'  # Defends
+SWABBIE = 'swabbie'  # Ground gold
+CAPTAIN = 'captain'  # Goes to land
 # <<-- /Creer-Merge: imports -->>
 
 
@@ -30,6 +35,19 @@ class AI(BaseAI):
         self.land_men = []
         self.skwardly_dogs = []
         self.merchants = []
+        self.base = None
+        self.ma_port = self.player.port
+        self.diggables = [
+            x for x in self.game.tiles
+            if x.type == LAND and not self.ma_port.tile.in_range(x, 10)
+        ]
+        self.beaches = []
+
+        for x in self.diggables:
+            for u in x.get_neighbors():
+                if u.type == WATER and not u.port:
+                    self.beaches.append(u)
+
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
@@ -76,7 +94,7 @@ class AI(BaseAI):
         self.booty_bodyguard()
 
         self.pirate_propagate()
-
+        
         self.all_aboard()
 
         self.frantic_fire()
@@ -114,7 +132,7 @@ class AI(BaseAI):
 
     def pirate_propagate(self):
         # Add attackers
-        attackers = self.sea_men[1:]
+        attackers = self.sea_men[2:]
         if attackers:
             print(info("There be {} attackers".format(len(attackers))))
 
@@ -154,6 +172,11 @@ class AI(BaseAI):
                 crew.move(least_ship.tile)
 
     def booty_bodyguard(self):
+        if len(self.sea_men) > 1:
+            self.create_base()
+            self.defend_base()
+
+    def defend_base(self):
         pass
 
     def frantic_fire(self):
@@ -163,6 +186,44 @@ class AI(BaseAI):
                 in_range = [t for t in targets if unit.tile.in_range(t.tile, 3)]
                 if in_range:
                     unit.attack(in_range[0].tile, SHIP)
+
+    def create_base(self):
+        # capn = self.jobs[CAPTAIN][0]
+        if len(self.sea_men) < 1:
+            return
+
+        capn = self.sea_men[1]
+        if not self.base:
+            if capn.crew < 2:
+                self.move_to_port(capn)
+                if not self.ma_port.tile.unit:
+                    if self.ma_port.spawn(CREW):
+                        swabbie = self.ma_port.tile.unit
+                        if not swabbie.withdraw(0):
+                            return
+                        swabbie.log("HIYA")
+                        swabbie.split(capn.tile, gold=-1)
+            else:
+                if self.move([capn], self.beaches):
+                    land_tile = [
+                        x for x in capn.tile.get_neighbors() if x.type ==
+                        LAND
+                    ][0]
+                    capn.split(land_tile, gold=-1)
+                    swabbie = land_tile.unit
+                    swabbie.log("IM ON LAND")
+
+                    if self.move([swabbie], self.diggables):
+                        swabbie.bury(0)
+
+                    self.base = land_tile
+
+    def get_neutrals(self):
+        """
+        Filters `game.units` to find units with no owner (merchants and empty
+        ships).
+        """
+        return [u for u in self.game.units if u.owner is None]
 
     def attack_ship(self, units, targets):
         """
