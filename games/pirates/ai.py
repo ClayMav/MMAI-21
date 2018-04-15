@@ -46,8 +46,8 @@ class AI(BaseAI):
             self.player.port.spawn(CREW)
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
-        elif self.get_merchants():
-            self.attack_ship([self.player.units[0]], self.get_merchants())
+        elif self.get_neutrals():
+            self.attack_ship([self.player.units[0]], self.get_neutrals())
         if self.player.units:
             print("   {}".format(self.player.units[0].crew))
 
@@ -56,31 +56,28 @@ class AI(BaseAI):
 
         return True
         # <<-- /Creer-Merge: runTurn -->>
+    
+    # <<-- Creer-Merge: functions -->> 
+    # if you need additional functions for your AI you can add them here
 
-    def sq_distance(self, a, b):
-        return (a.x - b.x) ** 2 + (a.y - b.y) ** 2
-
-
-    def nearest_merchant(self, unit):
-        ms = self.get_merchants()
-        if not ms:
-            return None
-
-        x = self.sq_distance(unit.tile, ms[0].tile)
-        result = ms[0]
-        for m in ms[1:]:
-            d = self.sq_distance(unit.tile, m.tile)
-            if d < x:
-                x = d
-                result = m
-
-        return result
-        
-
-    def get_merchants(self):
+    def get_neutrals(self):
+        """
+        Filters `game.units` to find units with no owner (merchants and empty ships).
+        """
         return [u for u in self.game.units if u.owner is None]
 
     def attack_ship(self, units, targets):
+        """
+        Makes progress toward attacking a target ship.
+
+        Once this function returns successfully, one of the targets will be destroyed.
+
+        :param units: The friendly units available to attack.
+        :param targets: The list of units to try to attack.
+
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
         if not self.move([u.tile for u in units], [t.tile for t in targets]):
             return False
         
@@ -94,9 +91,12 @@ class AI(BaseAI):
     def capture_ship(self, units, targets, split=1):
         """
         Makes progress toward capturing a target ship.
+        
+        Once this function returns successfully, the captured unit will be owned by the player.
 
-        :param unit: The friendly unit.
+        :param units: The friendly units available to capture.
         :param target: The list of units to try to capture.
+        :param split: How many units should be placed on the captured ship.
 
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
@@ -118,6 +118,14 @@ class AI(BaseAI):
         return False
 
     def heal(self, unit):
+        """
+        Moves a target to the port and heals it back to full health.
+
+        :param unit: The unit to heal.
+        
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
         if not self.move([unit.tile], [self.player.port.tile]):
             return False
 
@@ -125,6 +133,15 @@ class AI(BaseAI):
             return not unit.rest()
 
     def move(self, src, dst):
+        """
+        Finds the minimal-cost path from one of the src to one of dst and moves those units.
+        
+        :param src: A list source tiles containing units.
+        :param dst: A list of destination tiles.
+
+        :returns: True if the action has been completed, False if still in progress.
+        :rtype: bool
+        """
         start, path = pathing.find_path(src, dst)
         if not path:
             return False
@@ -134,6 +151,4 @@ class AI(BaseAI):
                     return False
         return True
 
-    # <<-- Creer-Merge: functions -->> 
-    # if you need additional functions for your AI you can add them here
     # <<-- /Creer-Merge: functions -->>
