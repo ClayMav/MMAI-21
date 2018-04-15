@@ -186,7 +186,7 @@ class AI(BaseAI):
                 in_range = [
                     t for t in targets
                     if unit.tile.in_range(t.tile, 3)
-                    and not unit.tile.port
+                    and not t.tile.port
                 ]
                 if in_range:
                     unit.attack(in_range[0].tile, SHIP)
