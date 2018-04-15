@@ -170,6 +170,9 @@ class Tile(GameObject):
         """
         return bool(tile and tile in self.get_neighbors())
 
+    def in_range(self, other, r):
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2 <= r ** 2
+
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 

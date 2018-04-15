@@ -181,7 +181,7 @@ class AI(BaseAI):
                     else:
                         b = unit.split(target.tile, split)
                         return b
-                elif self.in_range(unit.tile, target.tile, 3):
+                elif unit.tile.in_range(target.tile, 3):
                     unit.attack(target.tile, SHIP)
 
         return False
@@ -266,8 +266,5 @@ class AI(BaseAI):
         else:
             # create ship
             self.player.port.spawn(SHIP)
-
-    def in_range(self, a, b, r):
-        return (a.x - b.x) ** 2 + (a.y - b.y) ** 2 <= r ** 2
 
     # <<-- /Creer-Merge: functions -->>

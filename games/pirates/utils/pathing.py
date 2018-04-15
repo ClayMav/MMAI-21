@@ -4,7 +4,6 @@ Pathing utility functions.
 import heapq
 
 
-
 def find_path(start_tiles, goal_tiles,
               get_neighbors,
               g_func=lambda x, y: 1, f_func=lambda x, y: 0):
