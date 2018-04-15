@@ -265,7 +265,7 @@ class Unit(GameObject):
 
         return self.find_crew_neighbors
 
-    def find_path(self, goal_tiles):
+    def find_path(self, goal_tiles, **kwargs):
         """
         Finds the shortest path to any of the goal_tiles from the units current
         tile.
@@ -273,7 +273,7 @@ class Unit(GameObject):
         :param goal_tiles: A list of tiles to path to
         """
         return pathing.find_path(
-            [self.tile], goal_tiles, self.neighbors_func
+            [self.tile], goal_tiles, self.neighbors_func, **kwargs
         )
 
     def __str__(self):

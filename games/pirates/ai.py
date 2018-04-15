@@ -58,6 +58,11 @@ class AI(BaseAI):
             x for x in self.player.units
             if x.tile and x.ship_health == 0
         ]
+
+        self.skwardly_dogs = [
+            x for x in self.player.opponent.units
+            if x.type == "ship" and x.ship_health != 0
+        ]
         # <<-- /Creer-Merge: game-updated -->>
 
     def end(self, won, reason):
@@ -98,9 +103,23 @@ class AI(BaseAI):
             self.player.port.spawn(CREW)
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
+        elif self.sea_men[0].crew == 1:
+            self.sea_men[0].log('Restocking!')
+            if self.move([self.sea_men[0]], [self.player.port.tile]):
+                self.player.port.spawn(CREW)
+                self.player.port.spawn(CREW)
+                self.player.port.spawn(CREW)
+                self.player.port.tile.unit.move(self.sea_men[0].tile)
         elif self.get_neutrals():
             self.capture_ship([self.sea_men[0]], self.get_neutrals())
             self.sea_men[0].log("Recruiting!")
+        else:
+            merchant_ports = [
+                n for p in self.game.ports
+                for n in p.tile.get_neighbors()
+                if p.owner is None
+            ]
+            self.move([self.sea_men[0]], merchant_ports)
 
     def pirate_propagate(self):
         # Add attackers
@@ -221,7 +240,7 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        target_tiles = [t.tile for t in targets]
+        target_tiles = [t.tile for t in targets if not t.tile.port]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
         self.move(units, target_neighbors)
@@ -261,7 +280,7 @@ class AI(BaseAI):
             return True
         return False
 
-    def move_to_port(self, unit):
+    def move_to_port(self, unit, **kwargs):
         """
         Moves a target to the port.
 
@@ -272,7 +291,7 @@ class AI(BaseAI):
         """
         port_neighbors = [t for t in self.player.port.tile.get_neighbors()]
 
-        if not self.move([unit], port_neighbors):
+        if not self.move([unit], port_neighbors, **kwargs):
             return False
 
         if unit.tile.has_neighbor(self.player.port.tile):
@@ -280,7 +299,7 @@ class AI(BaseAI):
 
         return False
 
-    def move(self, units, dst):
+    def move(self, units, dst, **kwargs):
         """
         Finds the minimal-cost path from one of the src to one of dst and moves those units.
 
@@ -290,8 +309,9 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
+        kwargs.setdefault("g_func", self.ships_in_range)
         for unit in units:
-            start, path = unit.find_path(dst)
+            start, path = unit.find_path(dst, **kwargs)
             if start is None:
                 return False
             unit = start.unit
@@ -320,5 +340,13 @@ class AI(BaseAI):
         else:
             # create ship
             self.player.port.spawn(SHIP)
+
+    def ships_in_range(self, start, end):
+        counter = 1
+        for ship in self.skwardly_dogs:
+            if start.in_range(ship.tile, 3):
+                counter = counter + 2
+
+        return counter
 
     # <<-- /Creer-Merge: functions -->>
