@@ -89,11 +89,10 @@ class AI(BaseAI):
         if attackers:
             print(info("There are {} attackers".format(len(attackers))))
 
-        if len(fighers) > 3:
-            for fighter in attackers:
-                    fighter.log("Yar har!")
-                    enemy_units = [u for u in self.player.opponent.units]
-                    self.attack_ship([fighter], enemy_units)
+        for fighter in attackers:
+            fighter.log("Yar har!")
+            enemy_units = [u for u in self.player.opponent.units]
+            self.attack_ship([fighter], enemy_units)
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
