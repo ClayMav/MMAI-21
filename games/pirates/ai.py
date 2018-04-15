@@ -82,6 +82,7 @@ class AI(BaseAI):
             self.player.port.spawn(SHIP)
         elif self.get_neutrals():
             self.capture_ship([self.sea_men[0]], self.get_neutrals())
+            self.sea_men[0].log("Recruiting!")
 
     def pirate_propagate(self):
         # Add attackers
