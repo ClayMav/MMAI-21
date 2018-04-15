@@ -50,7 +50,7 @@ class AI(BaseAI):
 
     def print_stats(self):
         print(run(bg("Turn #{}".format(self.game.current_turn))))
-        self.player.print()
+        self.player.output_stats()
 
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
@@ -88,16 +88,15 @@ class AI(BaseAI):
     def pirate_propagate(self):
         # Add attackers
         attackers = []
-        if len(self.sea_men) > 2:
+        if len(self.sea_men) > 1:
             for pawn in self.sea_men[1:]:
                 attackers.append(pawn)
             print(info("There are {} attackers".format(len(attackers))))
 
-        if len(fighers) > 3:
-            for fighter in attackers:
-                    fighter.log("Yar har!")
-                    enemy_units = [u for u in self.player.opponent.units]
-                    self.attack_ship([fighter], enemy_units)
+        for fighter in attackers:
+            fighter.log("Yar har!")
+            enemy_units = [u for u in self.player.opponent.units]
+            self.attack_ship([fighter], enemy_units)
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
@@ -141,7 +140,7 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        target_tiles = [t.tile for t in targets]
+        target_tiles = [t.tile for t in targets if t.tile is not None]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
         if not self.move([u.tile for u in units], target_neighbors):

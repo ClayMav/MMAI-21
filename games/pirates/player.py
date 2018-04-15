@@ -4,7 +4,7 @@
 # Never try to directly create an instance of this class, or modify its member variables.
 # Instead, you should only be reading its variables and calling its functions.
 
-from termcolor import colored
+from huepy import orange, yellow, green, red
 
 from games.pirates.game_object import GameObject
 
@@ -132,27 +132,25 @@ class Player(GameObject):
         """
         return self._won
 
-    def print(self):
-        print(colored("\t {}".format(self.name), "green"))
+    def output_stats(self):
+        print("\t| {} {}".format(green("Player:"), self.name))
         print(
-            "\t\tGold {}; Infamy {}".format(
-                self.gold, self.infamy
+            "\t|\t {} {}, {} {}".format(
+                yellow("Gold:"), self.gold, orange("Infamy:"), self.infamy
             )
         )
         for unit in self.units:
-            print("\t\t{}".format(unit))
+            print("\t|\t {}".format(unit))
 
-        print(colored("\t {}".format(self.opponent.name), "red"))
+        print("\t| {} {}".format(red("Opponent:"), self.opponent.name))
         print(
-            "\t\tGold {}; Infamy {}".format(
-                self.opponent.gold, self.opponent.infamy
+            "\t|\t {} {}, {} {}".format(
+                yellow("Gold:"), self.opponent.gold, orange("Infamy:"),
+                self.opponent.infamy
             )
         )
         for unit in self.opponent.units:
-            print("\t\t{}".format(unit))
-
-
-
+            print("\t|\t {}".format(unit))
 
     # <<-- Creer-Merge: functions -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
     # if you want to add any client side logic (such as state checking functions) this is where you can add them

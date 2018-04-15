@@ -5,6 +5,7 @@
 # Instead, you should only be reading its variables and calling its functions.
 
 from games.pirates.game_object import GameObject
+from huepy import yellow, cyan, lightpurple
 
 # <<-- Creer-Merge: imports -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
 # you can add additional import(s) here
@@ -212,8 +213,9 @@ class Unit(GameObject):
     def __str__(self):
         unit_name = "Ship" if self.ship_health else "Crew"
         health = self.ship_health or self.crew_health
-        return "{} #{} (Gold: {}, Health: {})".format(
-            unit_name, self.id, self.gold, health
+        return "{} #{} ({} {}, {} {}, {} {})".format(
+            unit_name, self.id, yellow("Gold:"), self.gold, cyan("Health:"),
+            health, lightpurple("Crew:"), self.crew
         )
 
     # <<-- Creer-Merge: functions -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
