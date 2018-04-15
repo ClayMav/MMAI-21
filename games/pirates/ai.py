@@ -183,7 +183,11 @@ class AI(BaseAI):
         for unit in self.sea_men:
             if not unit.acted:
                 targets = self.merchants + self.skwardly_dogs
-                in_range = [t for t in targets if unit.tile.in_range(t.tile, 3)]
+                in_range = [
+                    t for t in targets
+                    if unit.tile.in_range(t.tile, 3)
+                    and not unit.tile.port
+                ]
                 if in_range:
                     unit.attack(in_range[0].tile, SHIP)
 
