@@ -8,7 +8,6 @@ from collections import OrderedDict
 from termcolor import colored
 import heapq
 
-
 WATER = 'water'
 LAND = 'land'
 SHIP = 'ship'
@@ -107,7 +106,10 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        if not self.move([u.tile for u in units], [t.tile for t in targets]):
+        target_tiles = [t.tile for t in targets]
+        target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
+
+        if not self.move([u.tile for u in units], target_neighbors):
             return False
         
         for unit in units:
@@ -130,8 +132,10 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
+        target_tiles = [t.tile for t in targets]
+        target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
-        if not self.move([u.tile for u in units], [t.tile for t in targets]):
+        if not self.move([u.tile for u in units], target_neighbors):
             return False
 
         for unit in units:
@@ -196,21 +200,26 @@ class AI(BaseAI):
         :rtype: bool
         """
         start, path = self.find_path(src, dst)
-        if not path:
+        if start is None:
             return False
         unit = start.unit
-        while path and not any(unit.tile.has_neighbor(t) for t in dst):
-                if not unit.move(path.pop(0)):
-                    return False
-        return True
+        if unit.tile in dst:
+            return True
+        for _ in range(unit.moves):
+            if not path:
+                return True
+            if not unit.move(path.pop(0)):
+                return False
+        return False
 
     def get_tile_neighbors(self, tile):
         """
         Collects all of neighbors surrounding a tile with no restrictions.
         """
         return [x for x in tile.get_neighbors()
-                if x.type == "water" and (x.port is None or self.player.port ==
-                                          x.port)]
+                if x.type == "water"
+                and (x.port is None or self.player.port == x.port)
+                and not x.unit]
 
     def find_path(self, start_tiles, goal_tiles,
                   get_neighbors=None,
