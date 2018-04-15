@@ -91,7 +91,7 @@ class AI(BaseAI):
 
         self.sea_starter()
 
-        self.booty_bodyguard()
+        #self.booty_bodyguard()
 
         self.pirate_propagate()
         
@@ -106,29 +106,29 @@ class AI(BaseAI):
     # if you need additional functions for your AI you can add them here
 
     def sea_starter(self):
-        if not self.player.units:
+        port_unit = self.player.port.tile.unit
+        if not port_unit and self.player.gold >= 2000:
             self.player.port.spawn(CREW)
-            self.player.port.spawn(CREW)
-            self.player.port.spawn(CREW)
-        elif self.player.units[0].ship_health == 0:
+        elif port_unit and port_unit.ship_health == 0 and self.player.gold >= 1800:
             self.player.port.spawn(SHIP)
-        elif self.sea_men[0].crew == 1:
-            self.sea_men[0].log('Restocking!')
-            if self.move([self.sea_men[0]], [self.player.port.tile]):
-                self.player.port.spawn(CREW)
-                self.player.port.spawn(CREW)
-                self.player.port.spawn(CREW)
-                self.player.port.tile.unit.move(self.sea_men[0].tile)
-        elif self.merchants:
-            self.capture_ship([self.sea_men[0]], self.merchants)
-            self.sea_men[0].log("Recruiting!")
-        else:
-            merchant_ports = [
-                n for p in self.game.ports
-                for n in p.tile.get_neighbors()
-                if p.owner is None
-            ]
-            self.move([self.sea_men[0]], merchant_ports)
+
+        for recruiter in self.sea_men[0:2]:
+            if recruiter.crew == 1:
+                recruiter.log('Restocking!')
+                if self.move([recruiter], [self.player.port.tile]):
+                    self.player.port.spawn(CREW)
+                    self.player.port.spawn(CREW)
+                    self.player.port.spawn(CREW)
+            elif self.merchants:
+                self.capture_ship([recruiter], self.merchants)
+                recruiter.log("Recruiting!")
+            else:
+                merchant_ports = [
+                    n for p in self.game.ports
+                    for n in p.tile.get_neighbors()
+                    if p.owner is None
+                ]
+                self.move([recruiter], merchant_ports)
 
     def pirate_propagate(self):
         # Add attackers
@@ -149,7 +149,7 @@ class AI(BaseAI):
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
-            if pawn.ship_health < 8 or pawn.tile in self.player.port.tile.get_neighbors():
+            if pawn.ship_health <= 8 or pawn.tile in self.player.port.tile.get_neighbors():
                 self.heal(pawn)
                 pawn.log("Healing time!")
             if pawn.gold >= 600:
@@ -218,8 +218,7 @@ class AI(BaseAI):
                     swabbie.log("IM ON LAND")
 
                     if self.move([swabbie], self.diggables):
-                        swabbie.bury(0)
-
+                        swabbie.bury(0) 
                     self.base = land_tile
 
     def get_neutrals(self):
@@ -267,7 +266,8 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        target_tiles = [t.tile for t in targets if not t.tile.port]
+        targets = [t for t in targets if not t.tile.port]
+        target_tiles = [t.tile for t in targets]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
         self.move(units, target_neighbors)
@@ -283,6 +283,7 @@ class AI(BaseAI):
                         return b
                 elif unit.tile.in_range(target.tile, 3):
                     unit.attack(target.tile, SHIP)
+                    break
 
         return False
 
