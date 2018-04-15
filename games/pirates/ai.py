@@ -107,7 +107,7 @@ class AI(BaseAI):
 
     def sea_starter(self):
         port_unit = self.player.port.tile.unit
-        if not port_unit and self.player.gold >= 2000:
+        if not port_unit and self.player.gold >= 2000 and len(self.sea_men) < 10:
             self.player.port.spawn(CREW)
         elif port_unit and port_unit.ship_health == 0 and self.player.gold >= 1800:
             self.player.port.spawn(SHIP)
@@ -301,6 +301,7 @@ class AI(BaseAI):
             if unit.ship_health == 20 and unit.crew_health == 4 * unit.crew:
                 return True
             unit.rest()
+            return unit.ship_health == 20 and unit.crew_health == 4 * unit.crew
         return False
 
     def drop_off(self, unit):
