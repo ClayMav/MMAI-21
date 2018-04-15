@@ -170,8 +170,7 @@ class AI(BaseAI):
         target_tiles = [t.tile for t in targets]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
-        if not self.move(units, target_neighbors):
-            return False
+        self.move(units, target_neighbors)
 
         for unit in units:
             for target in targets:
@@ -182,6 +181,8 @@ class AI(BaseAI):
                     else:
                         b = unit.split(target.tile, split)
                         return b
+                elif self.in_range(unit.tile, target.tile, 3):
+                    unit.attack(target.tile, SHIP)
 
         return False
 
@@ -265,5 +266,8 @@ class AI(BaseAI):
         else:
             # create ship
             self.player.port.spawn(SHIP)
+
+    def in_range(self, a, b, r):
+        return (a.x - b.x) ** 2 + (a.y - b.y) ** 2 <= r ** 2
 
     # <<-- /Creer-Merge: functions -->>
