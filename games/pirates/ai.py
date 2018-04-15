@@ -11,6 +11,10 @@ WATER = 'water'
 LAND = 'land'
 SHIP = 'ship'
 CREW = 'crew'
+QUARTER_MASTER = 'quarter_master'  # Recruits
+GUNNER = 'gunner'  # Attacks
+MATE = 'mate'  # Defends
+SWABBIE = 'swabbie'  # Ground gold
 # <<-- /Creer-Merge: imports -->>
 
 
@@ -120,7 +124,14 @@ class AI(BaseAI):
                 crew.move(least_ship.tile)
 
     def booty_bodyguard(self):
-        pass
+        if len(self.sea_men) > 1:
+            self.create_base()
+            self.defend_base()
+
+    def create_base(self):
+        
+        diggables = [x for x in self.game.tiles if x.type == LAND]
+        diggables = [x for x in diggables if not {{A TILE}}.in_range(x, 10)]
 
     def get_neutrals(self):
         """
