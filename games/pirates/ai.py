@@ -2,7 +2,7 @@
 
 from joueur.base_ai import BaseAI
 
-# <<-- Creer-Merge: imports -->> 
+# <<-- Creer-Merge: imports -->>
 # you can add additional import(s) here
 from huepy import info, bad, good, run, bg
 import heapq
@@ -48,10 +48,15 @@ class AI(BaseAI):
         pass
         # <<-- /Creer-Merge: end -->>
 
+    def print_stats(self):
+        print(colored('[+]', 'blue'), "Turn {}".format(self.game.current_turn))
+        self.player.print()
+
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
         print(run(bg("Turn #{}".format(self.game.current_turn))))
+        self.print_stats()
 
         self.sea_starter()
 
@@ -143,7 +148,7 @@ class AI(BaseAI):
 
         if not self.move([u.tile for u in units], target_neighbors):
             return False
-        
+
         for unit in units:
             for target in targets:
                 if unit.tile.has_neighbor(target.tile):
@@ -154,7 +159,7 @@ class AI(BaseAI):
     def capture_ship(self, units, targets, split=1):
         """
         Makes progress toward capturing a target ship.
-        
+
         Once this function returns successfully, the captured unit will be owned by the player.
 
         :param units: The friendly units available to capture.
@@ -188,7 +193,7 @@ class AI(BaseAI):
         Also deposits currency.
 
         :param unit: The unit to heal.
-        
+
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
@@ -208,7 +213,7 @@ class AI(BaseAI):
         Moves a target to the port.
 
         :param unit: The unit to move.
-        
+
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """

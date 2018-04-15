@@ -209,7 +209,12 @@ class Unit(GameObject):
         """
         return self._run_on_server('withdraw', amount=amount)
 
-
+    def __str__(self):
+        unit_name = "Ship" if self.ship_health else "Crew"
+        health = self.ship_health or self.crew_health
+        return "{} #{} (Gold: {}, Health: {})".format(
+            unit_name, self.id, self.gold, health
+        )
 
     # <<-- Creer-Merge: functions -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
     # if you want to add any client side logic (such as state checking functions) this is where you can add them
