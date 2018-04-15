@@ -49,13 +49,12 @@ class AI(BaseAI):
         # <<-- /Creer-Merge: end -->>
 
     def print_stats(self):
-        print(colored('[+]', 'blue'), "Turn {}".format(self.game.current_turn))
+        print(run(bg("Turn #{}".format(self.game.current_turn))))
         self.player.print()
 
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
-        print(run(bg("Turn #{}".format(self.game.current_turn))))
         self.print_stats()
 
         self.sea_starter()
@@ -127,7 +126,8 @@ class AI(BaseAI):
 
     def get_neutrals(self):
         """
-        Filters `game.units` to find units with no owner (merchants and empty ships).
+        Filters `game.units` to find units with no owner (merchants and empty
+        ships).
         """
         return [u for u in self.game.units if u.owner is None]
 
@@ -146,7 +146,7 @@ class AI(BaseAI):
         target_tiles = [t.tile for t in targets]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
-        if not self.move([u.tile for u in units], target_neighbors):
+        if not self.move(units, target_neighbors):
             return False
 
         for unit in units:
@@ -172,7 +172,7 @@ class AI(BaseAI):
         target_tiles = [t.tile for t in targets]
         target_neighbors = [n for t in target_tiles for n in t.get_neighbors()]
 
-        if not self.move([u.tile for u in units], target_neighbors):
+        if not self.move(units, target_neighbors):
             return False
 
         for unit in units:
@@ -219,7 +219,7 @@ class AI(BaseAI):
         """
         port_neighbors = [t for t in self.player.port.tile.get_neighbors()]
 
-        if not self.move([unit.tile], port_neighbors):
+        if not self.move([unit], port_neighbors):
             return False
 
         if unit.tile.has_neighbor(self.player.port.tile):
@@ -227,7 +227,7 @@ class AI(BaseAI):
 
         return False
 
-    def move(self, src, dst):
+    def move(self, units, dst):
         """
         Finds the minimal-cost path from one of the src to one of dst and moves those units.
 
@@ -237,80 +237,23 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        start, path = self.find_path(src, dst)
-        if start is None:
-            return False
-        unit = start.unit
-        if unit.tile in dst:
-            return True
-        if unit.acted:
-            return False
-
-        for _ in range(unit.moves):
-            if not path:
-                return True
-            if not unit.move(path.pop(0)):
+        for unit in units:
+            start, path = unit.find_path(dst)
+            if start is None:
                 return False
+            unit = start.unit
+            if unit.tile in dst:
+                return True
+            if unit.acted:
+                return False
+
+            for _ in range(unit.moves):
+                if not path:
+                    return True
+                if not unit.move(path.pop(0)):
+                    return False
         return False
 
-    def get_tile_neighbors(self, tile):
-        """
-        Collects all of neighbors surrounding a tile with no restrictions.
-        """
-        return [x for x in tile.get_neighbors()
-                if x.type == "water"
-                and (x.port is None or self.player.port == x.port)
-                and not x.unit]
-
-    def find_path(self, start_tiles, goal_tiles,
-                  get_neighbors=None,
-                  g_func=lambda x, y: 1, f_func=lambda x, y: 0):
-        """
-        Given a list of starting locations and a list of ending locations,
-        find the shortest path between them. Uses a priority queue to
-        do Uniform Cost Search (think Breadth First Search, but with movement
-        cost included).
-        """
-        if not get_neighbors:
-            get_neighbors = self.get_tile_neighbors
-        path = []
-        frontier = [(0, x) for x in start_tiles]
-        path_from = dict()
-        closed = set()
-
-        g_score = {x: 0 for x in start_tiles}
-        f_score = {x: g_score[x] + f_func(x, goal_tiles) for x in start_tiles}
-        heapq.heapify(frontier)
-
-        while frontier:
-            _weight, working_tile = heapq.heappop(frontier)
-
-            if working_tile in goal_tiles:
-                current = working_tile
-                path = [current]
-
-                while path_from.get(current):
-                    current = path_from.get(current)
-                    if current not in start_tiles:
-                        path.append(current)
-                path.reverse()
-
-                return current, path
-
-            closed.add(working_tile)
-
-            for neighbor in get_neighbors(working_tile):
-                if neighbor in closed:
-                    continue
-
-                new_g = g_score[working_tile] + g_func(working_tile, neighbor)
-
-                if new_g < g_score.get(neighbor, 1000000):
-                    g_score[neighbor] = new_g
-                    f_score[neighbor] = new_g + f_func(working_tile, goal_tiles)
-                    path_from[neighbor] = working_tile
-                    heapq.heappush(frontier, (f_score[neighbor], neighbor))
-        return None, []
 
     def register_ship(self, crew_required):
         port_unit = self.player.port.tile.unit

@@ -133,23 +133,23 @@ class Player(GameObject):
         return self._won
 
     def print(self):
-        print(colored("\t {}".format(self.name), "green"))
+        print(colored("\t{}".format(self.name), "green"))
         print(
-            "\t\tGold {}; Infamy {}".format(
+            "\tGold {}; Infamy {}".format(
                 self.gold, self.infamy
             )
         )
         for unit in self.units:
-            print("\t\t{}".format(unit))
+            print("\t{}".format(unit))
 
         print(colored("\t {}".format(self.opponent.name), "red"))
         print(
-            "\t\tGold {}; Infamy {}".format(
+            "\tGold {}; Infamy {}".format(
                 self.opponent.gold, self.opponent.infamy
             )
         )
         for unit in self.opponent.units:
-            print("\t\t{}".format(unit))
+            print("\t{}".format(unit))
 
 
 

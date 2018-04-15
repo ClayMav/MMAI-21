@@ -4,11 +4,16 @@
 # Never try to directly create an instance of this class, or modify its member variables.
 # Instead, you should only be reading its variables and calling its functions.
 
+from .utils import pathing
+
 from games.pirates.game_object import GameObject
 
 # <<-- Creer-Merge: imports -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
 # you can add additional import(s) here
 # <<-- /Creer-Merge: imports -->>
+
+SHIP = "ship"
+CREW = "crew"
 
 class Unit(GameObject):
     """The class representing the Unit in the Pirates game.
@@ -121,6 +126,7 @@ class Unit(GameObject):
         """
         return self._tile
 
+
     def attack(self, tile, target):
         """ Attacks either the 'crew' or 'ship' on a Tile in range.
 
@@ -175,6 +181,9 @@ class Unit(GameObject):
         Returns:
             bool: True if it moved, False otherwise.
         """
+        if getattr(tile, "type"):
+            if tile.type == "ship":
+                raise TypeError()
         return self._run_on_server('move', tile=tile)
 
     def rest(self):
@@ -208,6 +217,53 @@ class Unit(GameObject):
             bool: True if successfully withdrawn, False otherwise.
         """
         return self._run_on_server('withdraw', amount=amount)
+
+    def find_ship_neighbors(self, tile):
+        """
+        Finds the neighbors that a ship would be able to move around it.
+        """
+        return [
+            x for x in tile.get_neighbors() if x.type == "water" and
+            (x.port is None or self.owner.port == x.port) and not x.unit
+        ]
+
+    def find_crew_neighbors(self, tile):
+        """
+        Finds the neighbors that a crew would be able to move to around it.
+        """
+        return [
+            x for x in tile.get_neighbors() if x.type == "land" and
+            (x.port is None or self.owner.port == x.port) and not x.unit
+        ]
+
+    @property
+    def type(self):
+        """
+        The type of unit. Returns either "ship" or "crew"
+        """
+        return SHIP if self.ship_health else CREW
+
+    @property
+    def neighbors_func(self):
+        """
+        Returns the neighbors function that can be used to generate the
+        neighboring tiles of the given unit type.
+        """
+        if self.type == SHIP:
+            return self.find_ship_neighbors
+
+        return self.find_crew_neighbors
+
+    def find_path(self, goal_tiles):
+        """
+        Finds the shortest path to any of the goal_tiles from the units current
+        tile.
+
+        :param goal_tiles: A list of tiles to path to
+        """
+        return pathing.find_path(
+            [self.tile], goal_tiles, self.neighbors_func
+        )
 
     def __str__(self):
         unit_name = "Ship" if self.ship_health else "Crew"
