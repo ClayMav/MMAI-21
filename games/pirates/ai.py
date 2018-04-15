@@ -52,7 +52,8 @@ class AI(BaseAI):
             print("   {}".format(self.player.units[0].crew))
 
         for u in self.player.units[1:]:
-            self.heal(u)
+            if u.tile:
+                self.heal(u)
 
         return True
         # <<-- /Creer-Merge: runTurn -->>

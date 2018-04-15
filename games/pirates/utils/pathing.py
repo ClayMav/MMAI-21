@@ -8,7 +8,7 @@ def get_tile_neighbors(tile):
     """
     Collects all of neighbors surrounding a tile with no restrictions.
     """
-    return [x for x in tile.get_neighbors() if x.type == "water"]
+    return [x for x in tile.get_neighbors() if x.type == "water" and x.port == None]
 
     # return tile.get_neighbors()
 
