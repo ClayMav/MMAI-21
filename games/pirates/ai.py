@@ -7,6 +7,7 @@ from joueur.base_ai import BaseAI
 from collections import OrderedDict
 from .utils import pathing
 from termcolor import colored
+import heapq
 
 
 WATER = 'water'
@@ -177,7 +178,7 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        start, path = pathing.find_path(src, dst)
+        start, path = self.find_path(src, dst)
         if not path:
             return False
         unit = start.unit
@@ -185,5 +186,64 @@ class AI(BaseAI):
                 if not unit.move(path.pop(0)):
                     return False
         return True
+
+    def get_tile_neighbors(self, tile):
+        """
+        Collects all of neighbors surrounding a tile with no restrictions.
+        """
+        return [x for x in tile.get_neighbors() 
+            if x.type == "water" and (x.port == None or self.player.port == x.port)]
+
+        # return tile.get_neighbors()
+
+    def find_path(self, start_tiles, goal_tiles, 
+            get_neighbors=None,
+            g_func=lambda x, y: 1, f_func=lambda x, y: 0):
+        """
+        Given a list of starting locations and a list of ending locations,
+        find the shortest path between them. Uses a priority queue to
+        do Uniform Cost Search (think Breadth First Search, but with movement
+        cost included).
+        """
+        if not get_neighbors:
+            get_neighbors = self.get_tile_neighbors
+        path = []
+        frontier = [(0, x) for x in start_tiles]
+        path_from = dict()
+        closed = set()
+
+        g_score = {x: 0 for x in start_tiles}
+        f_score = {x: g_score[x] + f_func(x, goal_tiles) for x in start_tiles}
+        heapq.heapify(frontier)
+
+        while frontier:
+            _weight, working_tile = heapq.heappop(frontier)
+
+            if working_tile in goal_tiles:
+                current = working_tile
+                path = [current]
+
+                while path_from.get(current):
+                    current = path_from.get(current)
+                    if current not in start_tiles:
+                        path.append(current)
+                path.reverse()
+
+                return current, path
+
+            closed.add(working_tile)
+
+            for neighbor in get_neighbors(working_tile):
+                if neighbor in closed:
+                    continue
+
+                new_g = g_score[working_tile] + g_func(working_tile, neighbor)
+
+                if new_g < g_score.get(neighbor, 1000000):
+                    g_score[neighbor] = new_g
+                    f_score[neighbor] = new_g + f_func(working_tile, goal_tiles)
+                    path_from[neighbor] = working_tile
+                    heapq.heappush(frontier, (f_score[neighbor], neighbor))
+        return None, []
 
     # <<-- /Creer-Merge: functions -->>
