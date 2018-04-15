@@ -42,6 +42,7 @@ class AI(BaseAI):
         # replace with your start logic
         self.ship = None
         self.target = None
+        self.attackers = []
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
@@ -68,16 +69,23 @@ class AI(BaseAI):
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
         else:
-            self.player.port.spawn(CREW)
-            self.player.port.spawn(CREW)
-            self.player.port.spawn(CREW)
+            for _ in range(self.player.gold//200):
+                self.player.port.spawn(CREW)
 
+        if len(self.player.units) > 2:
+            for pawn in self.player.units[2:]:
+                self.attackers.append(pawn)
+            
         if self.get_neutrals():
             self.capture_ship([self.player.units[0]], self.get_neutrals())
 
-        for u in self.player.units[1:]:
-            if u.tile:
-                self.heal(u)
+        for pawn in self.player.units:
+            if pawn.ship_health != 0 and pawn.ship_health < 8 and pawn.tile is not None:
+                self.heal(pawn)
+
+        for fighter in self.attackers:
+            if fighter.tile is not None:
+                self.attack_ship([fighter], self.player.opponent.units)
 
         return True
         # <<-- /Creer-Merge: runTurn -->>
