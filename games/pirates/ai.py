@@ -26,14 +26,21 @@ class AI(BaseAI):
     def start(self):
         # <<-- Creer-Merge: start -->>
         # replace with your start logic
-        self.ship = None
-        self.target = None
+        self.sea_men = []
+        self.land_men = []
         # <<-- /Creer-Merge: start -->>
 
     def game_updated(self):
         # <<-- Creer-Merge: game-updated -->>
         # replace with your game updated logic
-        pass
+        self.sea_men = [
+            x for x in self.player.units
+            if x.tile and x.ship_health > 0
+        ]
+        self.land_men = [
+            x for x in self.player.units
+            if x.tile and x.ship_health == 0
+        ]
         # <<-- /Creer-Merge: game-updated -->>
 
     def end(self, won, reason):
@@ -46,8 +53,22 @@ class AI(BaseAI):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
         print(colored('[+]', 'blue'), "Turn {}".format(self.game.current_turn))
-        attackers = []
 
+        self.sea_starter()
+
+        self.pirate_propagate()
+
+        self.matey_maintenence()
+
+        self.all_aboard()
+
+        return True
+        # <<-- /Creer-Merge: runTurn -->>
+
+    # <<-- Creer-Merge: functions -->>
+    # if you need additional functions for your AI you can add them here
+
+    def sea_starter(self):
         if not self.player.units:
             self.player.port.spawn(CREW)
             self.player.port.spawn(CREW)
@@ -58,23 +79,20 @@ class AI(BaseAI):
             for _ in range(self.player.gold//200):
                 self.player.port.spawn(CREW)
 
-        # Add attackers
-        if len(self.player.units) > 2:
-            for pawn in self.player.units[2:]:
-                attackers.append(pawn)
-            print(colored('[+]', 'grey'), "There are {} attackers".format(
-                len(attackers)))
-
         if self.get_neutrals():
             self.capture_ship([self.player.units[0]], self.get_neutrals())
 
-        for pawn in self.player.units:
-            if pawn.ship_health != 0 and pawn.ship_health < 10 and pawn.tile is not None:
-                self.heal(pawn)
-
-        for pawn in self.player.units:
-            if pawn.gold >= 600 and pawn.tile is not None:
-                self.drop_off(pawn)
+    def pirate_propagate(self):
+        # Add attackers
+        attackers = []
+        if len(self.sea_men) > 2:
+            for pawn in self.player.units[2:]:
+                if pawn.ship_health > 0:
+                    attackers.append(pawn)
+            print(
+                colored('[+]', 'grey'),
+                "There are {} attackers".format(len(attackers))
+            )
 
         for fighter in attackers:
             if fighter.tile is not None:
@@ -82,11 +100,27 @@ class AI(BaseAI):
                                is not None]
                 self.attack_ship([fighter], enemy_units)
 
-        return True
-        # <<-- /Creer-Merge: runTurn -->>
-    
-    # <<-- Creer-Merge: functions -->> 
-    # if you need additional functions for your AI you can add them here
+    def matey_maintenence(self):
+        for pawn in self.sea_men:
+            if pawn.ship_health > 0 and pawn.ship_health < 10:
+                self.heal(pawn)
+            if pawn.gold >= 600:
+                self.drop_off(pawn)
+
+    def all_aboard(self):
+        # Move units to adjacent ships
+        port_crew = [x for x in self.land_men if x.tile.port]
+        port_ships = [
+            x for x in self.sea_men
+            if x.tile in self.player.port.tile.get_neighbors()
+        ]
+        if port_ships:
+            least_ship = port_ships[0]
+            for x in port_ships[1:]:
+                if x.crew < least_ship.crew:
+                    least_ship = x.crew
+            for crew in port_crew:
+                crew.move(least_ship.tile)
 
     def get_neutrals(self):
         """
@@ -180,7 +214,9 @@ class AI(BaseAI):
         :returns: True if the action has been completed, False if still in progress.
         :rtype: bool
         """
-        if not self.move([unit.tile], [self.player.port.tile]):
+        port_neighbors = [t for t in self.player.port.tile.get_neighbors()]
+
+        if not self.move([unit.tile], port_neighbors):
             return False
 
         if unit.tile.has_neighbor(self.player.port.tile):
@@ -188,11 +224,10 @@ class AI(BaseAI):
 
         return False
 
-
     def move(self, src, dst):
         """
         Finds the minimal-cost path from one of the src to one of dst and moves those units.
-        
+
         :param src: A list source tiles containing units.
         :param dst: A list of destination tiles.
 
@@ -205,6 +240,9 @@ class AI(BaseAI):
         unit = start.unit
         if unit.tile in dst:
             return True
+        if unit.acted:
+            return False
+
         for _ in range(unit.moves):
             if not path:
                 return True
