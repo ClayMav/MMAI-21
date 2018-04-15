@@ -85,9 +85,23 @@ class AI(BaseAI):
             self.player.port.spawn(CREW)
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
+        elif self.sea_men[0].crew == 1:
+            self.sea_men[0].log('Restocking!')
+            if self.move([self.sea_men[0]], [self.player.port.tile]):
+                self.player.port.spawn(CREW)
+                self.player.port.spawn(CREW)
+                self.player.port.spawn(CREW)
+                self.player.port.tile.unit.move(self.sea_men[0].tile)
         elif self.get_neutrals():
             self.capture_ship([self.sea_men[0]], self.get_neutrals())
             self.sea_men[0].log("Recruiting!")
+        else:
+            merchant_ports = [
+                n for p in self.game.ports
+                for n in p.tile.get_neighbors()
+                if p.owner is None
+            ]
+            self.move([self.sea_men[0]], merchant_ports)
 
     def pirate_propagate(self):
         # Add attackers
