@@ -4,6 +4,8 @@
 # Never try to directly create an instance of this class, or modify its member variables.
 # Instead, you should only be reading its variables and calling its functions.
 
+from termcolor import colored
+
 from games.pirates.game_object import GameObject
 
 # <<-- Creer-Merge: imports -->> - Code you add between this comment and the end comment will be preserved between Creer re-runs.
@@ -129,6 +131,26 @@ class Player(GameObject):
         :rtype: bool
         """
         return self._won
+
+    def print(self):
+        print(colored("\t {}".format(self.name), "green"))
+        print(
+            "\t\tGold {}; Infamy {}".format(
+                self.gold, self.infamy
+            )
+        )
+        for unit in self.units:
+            print("\t\t{}".format(unit))
+
+        print(colored("\t {}".format(self.opponent.name), "red"))
+        print(
+            "\t\tGold {}; Infamy {}".format(
+                self.opponent.gold, self.opponent.infamy
+            )
+        )
+        for unit in self.opponent.units:
+            print("\t\t{}".format(unit))
+
 
 
 
