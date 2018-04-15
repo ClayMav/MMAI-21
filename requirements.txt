@@ -1,1 +1,1 @@
-termcolor==1.1.0
+huepy==0.9.8.1

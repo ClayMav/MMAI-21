@@ -4,8 +4,7 @@ from joueur.base_ai import BaseAI
 
 # <<-- Creer-Merge: imports -->> 
 # you can add additional import(s) here
-from collections import OrderedDict
-from termcolor import colored
+from huepy import info, bad, good, run, bg
 import heapq
 
 WATER = 'water'
@@ -52,7 +51,7 @@ class AI(BaseAI):
     def run_turn(self):
         # <<-- Creer-Merge: runTurn -->>
         # Put your game logic here for runTurn
-        print(colored('[+]', 'blue'), "Turn {}".format(self.game.current_turn))
+        print(run(bg("Turn #{}".format(self.game.current_turn))))
 
         self.sea_starter()
 
@@ -87,12 +86,8 @@ class AI(BaseAI):
         attackers = []
         if len(self.sea_men) > 2:
             for pawn in self.sea_men[1:]:
-                if pawn.ship_health > 0:
-                    attackers.append(pawn)
-            print(
-                colored('[+]', 'grey'),
-                "There are {} attackers".format(len(attackers))
-            )
+                attackers.append(pawn)
+            print(info("There are {} attackers".format(len(attackers))))
 
         for fighter in attackers:
             if fighter.tile is not None:
@@ -106,11 +101,9 @@ class AI(BaseAI):
             if pawn.ship_health < 10:
                 self.heal(pawn)
                 pawn.log("Healing time!")
-                print(colored('[+]', 'white'), "Healing time!")
             if pawn.gold >= 600:
                 self.drop_off(pawn)
                 pawn.log("Dropping dosh!")
-                print(colored('[+]', 'yellow'), "Dropping dosh!")
 
     def all_aboard(self):
         # Move units to adjacent ships
