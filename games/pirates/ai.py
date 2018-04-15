@@ -47,7 +47,7 @@ class AI(BaseAI):
         elif self.player.units[0].ship_health == 0:
             self.player.port.spawn(SHIP)
         elif self.get_neutrals():
-            self.attack_ship([self.player.units[0]], self.get_neutrals())
+            self.capture_ship([self.player.units[0]], self.get_neutrals())
         if self.player.units:
             print("   {}".format(self.player.units[0].crew))
 
@@ -130,7 +130,9 @@ class AI(BaseAI):
             return False
 
         if unit.tile.has_neighbor(self.player.port.tile):
-            return not unit.rest()
+            unit.rest()
+            return unit.ship_health == 20 and unit.crew_health == 4 * unit.crew
+        return False
 
     def move(self, src, dst):
         """
