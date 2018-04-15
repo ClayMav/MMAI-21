@@ -76,7 +76,8 @@ class AI(BaseAI):
             self.capture_ship([self.player.units[0]], self.get_neutrals())
 
         for u in self.player.units[1:]:
-            self.heal(u)
+            if u.tile:
+                self.heal(u)
 
         return True
         # <<-- /Creer-Merge: runTurn -->>
