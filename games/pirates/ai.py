@@ -56,9 +56,9 @@ class AI(BaseAI):
 
         self.sea_starter()
 
-        self.pirate_propagate()
-
         self.matey_maintenence()
+
+        self.pirate_propagate()
 
         self.all_aboard()
 
@@ -80,13 +80,13 @@ class AI(BaseAI):
                 self.player.port.spawn(CREW)
 
         if self.get_neutrals():
-            self.capture_ship([self.player.units[0]], self.get_neutrals())
+            self.capture_ship([self.sea_men[0]], self.get_neutrals())
 
     def pirate_propagate(self):
         # Add attackers
         attackers = []
         if len(self.sea_men) > 2:
-            for pawn in self.player.units[2:]:
+            for pawn in self.sea_men[1:]:
                 if pawn.ship_health > 0:
                     attackers.append(pawn)
             print(
@@ -96,16 +96,21 @@ class AI(BaseAI):
 
         for fighter in attackers:
             if fighter.tile is not None:
+                fighter.log("Yar har!")
                 enemy_units = [u for u in self.player.opponent.units if u.tile
                                is not None]
                 self.attack_ship([fighter], enemy_units)
 
     def matey_maintenence(self):
         for pawn in self.sea_men:
-            if pawn.ship_health > 0 and pawn.ship_health < 10:
+            if pawn.ship_health < 10:
                 self.heal(pawn)
+                pawn.log("Healing time!")
+                print(colored('[+]', 'white'), "Healing time!")
             if pawn.gold >= 600:
                 self.drop_off(pawn)
+                pawn.log("Dropping dosh!")
+                print(colored('[+]', 'yellow'), "Dropping dosh!")
 
     def all_aboard(self):
         # Move units to adjacent ships
